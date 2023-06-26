@@ -1,4 +1,4 @@
-[x] get IR signal registered by cloud 
-[ ] map colours from remote to IR output signals
-[ ] map chords or notes to colours 
-[ ] factor in the pitch shift to tilt the colour
+- [x] get IR signal registered by cloud
+- [ ] map colours from remote to IR output signals
+- [ ] map chords or notes to colours 
+- [ ] factor in the pitch shift to tilt the colour

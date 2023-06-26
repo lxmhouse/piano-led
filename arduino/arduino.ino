@@ -1,9 +1,5 @@
 #include <Adafruit_NeoPixel.h>
 
-#ifdef __AVR__
-#include <avr/power.h>
-#endif
-
 #define PIN 6
 #define NUM_PIXELS 24
 
@@ -28,11 +24,6 @@ int parseData(String data, int *intList)
 
 void setup()
 {
-#if defined(__AVR_ATtiny85__)
-  if (F_CPU == 16000000)
-    clock_prescale_set(clock_div_1);
-#endif
-
   strip.begin();
   strip.setBrightness(20);
   strip.show();
@@ -42,7 +33,7 @@ void setup()
   Serial.setTimeout(10);
   // colorWipe(strip.Color(255, 0, 0), 1); // Red
   // black();
-  white();
+  // white();
 }
 
 void loop()
@@ -54,89 +45,37 @@ void loop()
     String notes = Serial.readStringUntil('\n');
 
     // int note = Serial.readString().toInt();
-    black();
+    // black();
 
     int noteVec[50]; // Manually managed array. You might need to adjust the size.
     int size = parseData(notes, noteVec);
+    struct Color
+    {
+      String name;
+      uint32_t value;
+    };
+    const Color colorMap[] = {{"red", 0x58},
+                              {"orange", 0x1C},
+                              {"yellow", 0x18},
+                              {"green", 0x59},
+                              {"lightgreen", 0x55},
+                              {"darkblue", 0x45},
+                              {"blue", 0x49},
+                              {"turquoise", 0x19},
+                              {"clearblue", 0x51},
+                              {"darkpurple", 0x4D},
+                              {"purple", 0x1E},
+                              {"magenta", 0x1A},
+                              {"pink", 0x4C},
+                              {"seablue", 0x1D},
+                              {"lightblue", 0x1B},
+                              {"verylightblue", 0x1F}};
+
+    // CLOUD
     for (int i = 0; i < size; i++)
     {
       int idx = noteVec[i] % NUM_PIXELS;
       strip.setPixelColor(idx, random(0, 255), random(0, 255), random(0, 255), 0);
-    }
-
-    // // Calculate the octave based on the MIDI note number.
-    // int octave = note / 12;
-
-    // // Modulate the brightness based on the octave.
-    // // Here, we just set it to 10 times the octave number, but you might want to adjust this calculation.
-    // int brightness = octave * 10;
-    // brightness = constrain(brightness, 0, 255); // Ensure brightness stays within valid range.
-
-    // strip.setPixelColor(idx, 0, 0, 0, 255);
-
-    // Set the brightness.
-    // strip.setBrightness(brightness);
-    // colorWipe(strip.Color(0, 0, 255), brightness); // Red
-
-    // Show the changes on the strip.
-    strip.show();
-  }
-}
-
-void white()
-{
-  for (uint16_t i = 0; i < strip.numPixels(); i++)
-  {
-    strip.setPixelColor(i, 0, 0, 0, 255);
-  }
-  strip.show();
-}
-
-void black()
-{
-  for (uint16_t i = 0; i < strip.numPixels(); i++)
-  {
-    strip.setPixelColor(i, 0, 0, 0);
-  }
-  strip.show();
-}
-
-// Fill the dots one after the other with a color
-void colorWipe(uint32_t c, uint8_t wait)
-{
-  for (uint16_t i = 0; i < strip.numPixels(); i++)
-  {
-    strip.setPixelColor(i, c);
-    strip.show();
-    delay(wait);
-  }
-
-  // for (uint16_t i = 0; i < strip.numPixels(); i++)
-  // {
-  //   strip.setPixelColor(i, 10, 10, 10);
-  // }
-
-  strip.show();
-}
-
-void theaterChase(uint32_t c, uint8_t wait)
-{
-  for (int j = 0; j < 10; j++)
-  {
-    for (int q = 0; q < 3; q++)
-    {
-      for (uint16_t i = 0; i < strip.numPixels(); i = i + 3)
-      {
-        strip.setPixelColor(i + q, c);
-      }
-      strip.show();
-
-      delay(wait);
-
-      for (uint16_t i = 0; i < strip.numPixels(); i = i + 3)
-      {
-        strip.setPixelColor(i + q, 0);
-      }
     }
   }
 }

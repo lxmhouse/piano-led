@@ -1,9 +1,8 @@
-#include <Adafruit_NeoPixel.h>
+#include <IRremote.h>
+#define IR_SEND_PIN 3
 
-#define PIN 6
-#define NUM_PIXELS 24
+IRsend irsend(IR_SEND_PIN);
 
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(NUM_PIXELS, PIN, NEO_GRBW + NEO_KHZ800);
 
 int parseData(String data, int *intList)
 {
@@ -24,16 +23,11 @@ int parseData(String data, int *intList)
 
 void setup()
 {
-  strip.begin();
-  strip.setBrightness(20);
-  strip.show();
-
   // Begin serial communication.
   Serial.begin(9600);
   Serial.setTimeout(10);
-  // colorWipe(strip.Color(255, 0, 0), 1); // Red
-  // black();
-  // white();
+
+  irsend.begin(IR_SEND_PIN); // Send a 500us IR pulse
 }
 
 void loop()
@@ -74,8 +68,12 @@ void loop()
     // CLOUD
     for (int i = 0; i < size; i++)
     {
-      int idx = noteVec[i] % NUM_PIXELS;
-      strip.setPixelColor(idx, random(0, 255), random(0, 255), random(0, 255), 0);
+        // int idx = noteVec[-1] % NUM_PIXELS;
+        int colorIdx = noteVec[size - 2] % 12; // Get the second to last value in noteVec modulo 12
+        uint32_t color = colorMap[colorIdx].value; // Get the corresponding hex value from colorMap
+        uint16_t address = 0x00;   // Most significant 8 bits of address; 0x00 for single address
+        irsend.sendNEC(address, color, 5); // 0 indicates no repeat
+        delay(200);   
     }
   }
 }

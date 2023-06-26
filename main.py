@@ -5,14 +5,14 @@ import time
 
 def stream(inport):
     print("Reading MIDI messages. Press Ctrl+C to stop.")
-    current_notes = set()
+    current_notes = []
     pitch_bend = 0
     for msg in inport:
         if msg.type == "clock":
             continue
         elif msg.type == "note_on":
             if msg.velocity > 0:
-                current_notes.add(msg.note)
+                current_notes += [msg.note]
                 send_notes(current_notes)
             elif msg.note in current_notes:
                 current_notes.remove(msg.note)
@@ -32,7 +32,7 @@ def send_notes(notes):
     arduino_serial.write(note_bytes)
 
 
-arduino_serial = serial.Serial("/dev/cu.usbserial-1440", 9600)
+arduino_serial = serial.Serial("/dev/cu.usbmodem14201", 9600)
 
 ports = mido.get_input_names()
 print("All available MIDI ports:")

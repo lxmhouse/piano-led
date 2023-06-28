@@ -32,7 +32,7 @@ def send_notes(notes):
     arduino_serial.write(note_bytes)
 
 
-arduino_serial = serial.Serial("/dev/cu.usbserial-1440", 9600)
+arduino_serial = serial.Serial("/dev/cu.usbmodem14401", 9600)
 
 ports = mido.get_input_names()
 print("All available MIDI ports:")

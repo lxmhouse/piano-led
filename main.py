@@ -2,6 +2,8 @@ import mido
 import serial
 import time
 
+import serial.tools.list_ports
+
 
 def stream(inport):
     print("Reading MIDI messages. Press Ctrl+C to stop.")
@@ -32,7 +34,23 @@ def send_notes(notes):
     arduino_serial.write(note_bytes)
 
 
-arduino_serial = serial.Serial("/dev/cu.usbmodem14401", 9600)
+def get_arduino_serial():
+    ports = serial.tools.list_ports.comports()
+
+    # pick the port where port[2]!='n/a'
+    arduino_port = next((port for port in ports if port[2] != "n/a"), None)
+    if arduino_port is None:
+        print("Arduino not found.")
+        return None
+    else:
+        print(f"Arduino found: {arduino_port}")
+        return serial.Serial(arduino_port[0], 9600)
+
+
+arduino_serial = get_arduino_serial()
+if arduino_serial is None:
+    exit()
+
 
 ports = mido.get_input_names()
 print("All available MIDI ports:")

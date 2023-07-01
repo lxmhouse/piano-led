@@ -28,10 +28,6 @@ int parseData(String data, int *intList)
 
 void setup()
 {
-#if defined(__AVR_ATtiny85__)
-  if (F_CPU == 16000000)
-    clock_prescale_set(clock_div_1);
-#endif
 
   strip.begin();
   strip.setBrightness(20);
@@ -40,8 +36,6 @@ void setup()
   // Begin serial communication.
   Serial.begin(9600);
   Serial.setTimeout(10);
-  // colorWipe(strip.Color(255, 0, 0), 1); // Red
-  // black();
   white();
 }
 
@@ -63,20 +57,6 @@ void loop()
       int idx = noteVec[i] % NUM_PIXELS;
       strip.setPixelColor(idx, random(0, 255), random(0, 255), random(0, 255), 0);
     }
-
-    // // Calculate the octave based on the MIDI note number.
-    // int octave = note / 12;
-
-    // // Modulate the brightness based on the octave.
-    // // Here, we just set it to 10 times the octave number, but you might want to adjust this calculation.
-    // int brightness = octave * 10;
-    // brightness = constrain(brightness, 0, 255); // Ensure brightness stays within valid range.
-
-    // strip.setPixelColor(idx, 0, 0, 0, 255);
-
-    // Set the brightness.
-    // strip.setBrightness(brightness);
-    // colorWipe(strip.Color(0, 0, 255), brightness); // Red
 
     // Show the changes on the strip.
     strip.show();
@@ -110,11 +90,6 @@ void colorWipe(uint32_t c, uint8_t wait)
     strip.show();
     delay(wait);
   }
-
-  // for (uint16_t i = 0; i < strip.numPixels(); i++)
-  // {
-  //   strip.setPixelColor(i, 10, 10, 10);
-  // }
 
   strip.show();
 }

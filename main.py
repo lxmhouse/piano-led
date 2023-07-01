@@ -33,6 +33,8 @@ def stream():
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if note in current_notes:
                     current_notes.remove(note)
+            if len(current_notes) != 0:
+                print(current_notes)
 
 
 def send_notes(notes):

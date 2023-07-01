@@ -1,4 +1,12 @@
 # Piano LED
-- install [Yamaha MIDI driver](https://usa.yamaha.com/products/contents/music_production/downloads/firmware_software/index.html?c=music_production&k=USB-MIDI)
-- `pip install pyserial`, `mido` and `python-rtmidi` 
-- for LED strip, Arduino library `<Adafruit_NeoPixel.h>`; for cloud, `<IRremote.h>`
+## Installation
+We run the python file on a Raspberry Pi that is hooked up to an Arduino.
+
+### Arduino
+- for LED strip, install Arduino library `<Adafruit_NeoPixel.h>`
+- for cloud, `<IRremote.h>`
+
+### Pi
+```pip install pyserial mido python-rtmidi```
+Then run
+```python main.py```

@@ -33,15 +33,12 @@ def stream():
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if note in current_notes:
                     current_notes.remove(note)
-            if len(current_notes) != 0:
-                print(current_notes)
 
 
 def send_notes(notes):
     """
     Send notes to Arduino via serial with throttling.
     """
-    print("Sending")
     note = ",".join(str(n) for n in notes) + "\n"
     note_bytes = str(note).encode("utf-8")
     arduino_serial.write(note_bytes)

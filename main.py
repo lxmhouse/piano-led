@@ -1,27 +1,40 @@
-import mido
+# works on linux
+
+import subprocess
 import serial
 import time
+import re
 
 import serial.tools.list_ports
 
 
-def stream(inport):
+def stream():
     print("Reading MIDI messages. Press Ctrl+C to stop.")
     current_notes = []
     pitch_bend = 0
-    for msg in inport:
-        if msg.type == "clock":
-            continue
-        elif msg.type == "note_on":
-            if msg.velocity > 0:
-                current_notes += [msg.note]
-                send_notes(current_notes)
-            elif msg.note in current_notes:
-                current_notes.remove(msg.note)
-        elif msg.type == "pitchwheel":
-            pitch_bend = msg.pitch
-        if len(current_notes) != 0:
-            print(current_notes, "pitch: ", pitch_bend)
+
+    # Construct the aseqdump command
+    device_id = "20:0"
+    command = ["aseqdump", "-p", device_id]
+
+    # Start the process
+    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+    while True:
+        output = process.stdout.readline().decode("utf-8")
+        if output:
+            if "Note on" in output:
+                velocity = int(re.search(r"velocity (\d+)", output).group(1))
+                note = int(re.search(r"note (\d+)", output).group(1))
+                if velocity > 0:
+                    current_notes += [note]
+                    send_notes(current_notes)
+            elif "Note off" in output:
+                note = int(re.search(r"note (\d+)", output).group(1))
+                if note in current_notes:
+                    current_notes.remove(note)
+            if len(current_notes) != 0:
+                print(current_notes)
 
 
 def send_notes(notes):
@@ -51,17 +64,4 @@ arduino_serial = get_arduino_serial()
 if arduino_serial is None:
     exit()
 
-
-ports = mido.get_input_names()
-print("All available MIDI ports:")
-for port in ports:
-    print(port)
-
-yamaha_port = next((port for port in ports if "YAMAHA" in port), None)
-if yamaha_port is None:
-    print("Yamaha piano not found.")
-else:
-    print(f"Yamaha piano found: {yamaha_port}")
-
-    with mido.open_input(yamaha_port) as inport:
-        stream(inport)
+stream()

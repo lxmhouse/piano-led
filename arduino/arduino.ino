@@ -35,7 +35,7 @@ void setup()
 
   // Begin serial communication.
   Serial.begin(9600);
-  Serial.setTimeout(10);
+  Serial.setTimeout(10); // reduce the latency of the serial communication to 10 ms (default is 1 second)
   white();
 }
 

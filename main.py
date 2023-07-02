@@ -1,15 +1,12 @@
-# works on linux
-
+import argparse
 import subprocess
 import serial
 import re
 
 import serial.tools.list_ports
 
-device = "cloud"
 
-
-def stream():
+def stream(device):
     print("Reading MIDI messages. Press Ctrl+C to stop.")
     current_notes = []
     pitch_bend = 0
@@ -29,7 +26,7 @@ def stream():
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if velocity > 0:
                     current_notes += [note]
-                    send_notes(current_notes)
+                    send_notes(current_notes, device)
             elif "Note off" in output:
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if note in current_notes:
@@ -38,22 +35,17 @@ def stream():
                 print(current_notes)
 
 
-def send_notes(notes):
+def send_notes(notes, device):
     """
     Send notes to Arduino via serial with throttling.
     """
     note = ",".join(str(n) for n in notes) + "\n"
     note_bytes = str(note).encode("utf-8")
-    arduino_serial.write(note_bytes)
+    device.write(note_bytes)
 
 
-def get_arduino_serial():
-    # ports = serial.tools.list_ports.comports()
-
-    # pick the port where port[2]!='n/a'
-    # arduino_port = next((port for port in ports if port[2] != "n/a"), None)
-
-    if device == "cloud":
+def get_arduino_serial(device_id):
+    if device_id == "cloud":
         arduino_port = "ttyACM0"
     else:
         arduino_port = "ttyAMA0"
@@ -66,8 +58,20 @@ def get_arduino_serial():
         return serial.Serial(arduino_port[0], 9600)
 
 
-arduino_serial = get_arduino_serial()
-if arduino_serial is None:
-    exit()
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--device",
+        type=str,
+        default="led",
+        help="The device to stream to (cloud or led)",
+    )
+    args = parser.parse_args()
+    device = get_arduino_serial(args.device)
+    if device is None:
+        exit()
+    stream(device)
 
-stream()
+
+if __name__ == "__main__":
+    main()

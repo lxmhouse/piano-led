@@ -1,4 +1,3 @@
-import argparse
 import subprocess
 import serial
 import re
@@ -6,7 +5,7 @@ import re
 import serial.tools.list_ports
 
 
-def stream(device):
+def stream(devices):
     print("Reading MIDI messages. Press Ctrl+C to stop.")
     current_notes = []
     pitch_bend = 0
@@ -26,7 +25,8 @@ def stream(device):
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if velocity > 0:
                     current_notes += [note]
-                    send_notes(current_notes, device)
+                    for device in devices:
+                        send_notes(current_notes, device)
             elif "Note off" in output:
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if note in current_notes:
@@ -59,18 +59,20 @@ def get_arduino_serial(device_id):
 
 
 def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--device",
-        type=str,
-        default="led",
-        help="The device to stream to (cloud or led)",
-    )
-    args = parser.parse_args()
-    device = get_arduino_serial(args.device)
-    if device is None:
-        exit()
-    stream(device)
+    cloud_device = get_arduino_serial("cloud")
+    led_device = get_arduino_serial("led")
+
+    if cloud_device is None and led_device is None:
+        print("No devices found.")
+        return
+    elif cloud_device is None:
+        print("Only led device found.")
+        stream([led_device])
+    elif led_device is None:
+        print("Only cloud device found.")
+        stream([cloud_device])
+    else:
+        stream([cloud_device, led_device])
 
 
 if __name__ == "__main__":

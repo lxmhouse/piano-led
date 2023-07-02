@@ -2,10 +2,11 @@
 
 import subprocess
 import serial
-import time
 import re
 
 import serial.tools.list_ports
+
+device = "cloud"
 
 
 def stream():
@@ -47,10 +48,16 @@ def send_notes(notes):
 
 
 def get_arduino_serial():
-    ports = serial.tools.list_ports.comports()
+    # ports = serial.tools.list_ports.comports()
 
     # pick the port where port[2]!='n/a'
-    arduino_port = next((port for port in ports if port[2] != "n/a"), None)
+    # arduino_port = next((port for port in ports if port[2] != "n/a"), None)
+
+    if device == "cloud":
+        arduino_port = "ttyACM0"
+    else:
+        arduino_port = "ttyAMA0"
+
     if arduino_port is None:
         print("Arduino not found.")
         return None

@@ -55,7 +55,7 @@ def get_arduino_serial(device_id):
         return None
     else:
         print(f"Arduino found: {arduino_port}")
-        return serial.Serial(arduino_port[0], 9600)
+        return serial.Serial(arduino_port, 9600)
 
 
 def main():

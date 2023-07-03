@@ -25,8 +25,7 @@ def stream(devices):
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if velocity > 0:
                     current_notes += [note]
-                    for device in devices:
-                        send_notes(current_notes, device)
+                    send_notes(current_notes)
             elif "Note off" in output:
                 note = int(re.search(r"note (\d+)", output).group(1))
                 if note in current_notes:
@@ -35,13 +34,14 @@ def stream(devices):
                 print(current_notes)
 
 
-def send_notes(notes, device):
+def send_notes(notes):
     """
     Send notes to Arduino via serial with throttling.
     """
     note = ",".join(str(n) for n in notes) + "\n"
     note_bytes = str(note).encode("utf-8")
-    device.write(note_bytes)
+    cloud_device.write(note_bytes)
+    led_device.write(note_bytes)
 
 
 def get_arduino_serial(device_id):
@@ -58,22 +58,17 @@ def get_arduino_serial(device_id):
         return serial.Serial(arduino_port, 9600)
 
 
-def main():
-    cloud_device = get_arduino_serial("cloud")
-    led_device = get_arduino_serial("led")
+cloud_device = get_arduino_serial("cloud")
+led_device = get_arduino_serial("led")
 
-    if cloud_device is None and led_device is None:
-        print("No devices found.")
-        return
-    elif cloud_device is None:
-        print("Only led device found.")
-        stream([led_device])
-    elif led_device is None:
-        print("Only cloud device found.")
-        stream([cloud_device])
-    else:
-        stream([cloud_device, led_device])
-
-
-if __name__ == "__main__":
-    main()
+if cloud_device is None and led_device is None:
+    print("No devices found.")
+    exit()
+elif cloud_device is None:
+    print("Only led device found.")
+    stream([led_device])
+elif led_device is None:
+    print("Only cloud device found.")
+    stream([cloud_device])
+else:
+    stream([cloud_device, led_device])

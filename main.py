@@ -46,7 +46,7 @@ def send_notes(notes, device):
 
 def get_arduino_serial(device_id):
     if device_id == "cloud":
-        arduino_port = "/dev/ttyAMA0"
+        arduino_port = "/dev/ttyACM0"
     else:
         arduino_port = "/dev/ttyUSB0"
 

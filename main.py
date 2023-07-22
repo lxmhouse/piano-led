@@ -15,8 +15,9 @@ def stream(devices):
     command = ["aseqdump", "-p", device_id]
 
     # Start the process
+    # while True:
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
+        
     while True:
         output = process.stdout.readline().decode("utf-8")
         if output:

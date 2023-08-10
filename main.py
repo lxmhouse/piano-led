@@ -3,7 +3,7 @@ import serial
 import re
 
 import serial.tools.list_ports
-
+from serial.serialutil import SerialException
 
 def stream(devices):
     print("Reading MIDI messages. Press Ctrl+C to stop.")
@@ -15,9 +15,12 @@ def stream(devices):
     command = ["aseqdump", "-p", device_id]
 
     # Start the process
-    # while True:
-    process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        
+    try:
+        process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    except Exception as e:
+        print("Could not start process:", e)
+        return
+
     while True:
         output = process.stdout.readline().decode("utf-8")
         if output:
@@ -35,28 +38,36 @@ def stream(devices):
             if len(current_notes) != 0:
                 print(current_notes)
 
-
 def send_notes(notes, device):
     """
     Send notes to Arduino via serial with throttling.
     """
-    note = ",".join(str(n) for n in notes) + "\n"
-    note_bytes = str(note).encode("utf-8")
-    device.write(note_bytes)
+    try:
+        note = ",".join(str(n) for n in notes) + "\n"
+        note_bytes = str(note).encode("utf-8")
+        device.write(note_bytes)
+        print('sent HI')
+    except Exception as e:
+        print("Could not send notes to device", e)
 
 
 def get_arduino_serial(device_id):
+    ports = serial.tools.list_ports.comports()
+    for port in ports:
+        print(f"Device: {port.device}, Description: {port.description}")
+
     if device_id == "cloud":
         arduino_port = "/dev/ttyACM0"
-    else:
+    else:  # led
         arduino_port = "/dev/ttyUSB0"
-
-    if arduino_port is None:
-        print("Arduino not found.")
-        return None
-    else:
+    try:
+        ser = serial.Serial(arduino_port, 9600)
         print(f"Arduino found: {arduino_port}")
-        return serial.Serial(arduino_port, 9600)
+        return ser
+
+    except SerialException:
+        print(f"Arduino not found at port {arduino_port}.")
+        return None
 
 
 def main():
@@ -73,6 +84,7 @@ def main():
         print("Only cloud device found.")
         stream([cloud_device])
     else:
+        print("Both cloud and led devices found.")
         stream([cloud_device, led_device])
 
 

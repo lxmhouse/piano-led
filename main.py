@@ -24,7 +24,7 @@ def stream(devices):
 
     while True:
         while process.poll() is not None:
-            print("Piano is off...attempting to reconnect")
+            print("Piano is off...attempting to reconnect, poll is ", process.poll())
             process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             time.sleep(1)
 
@@ -90,6 +90,9 @@ def get_arduino_serial(device_id):
         return ser
     except SerialException:
         print(f"Arduino not found at port {arduino_port}.")
+        return None
+    except Exception as e:
+        print(f"Arduino not found at port {arduino_port}, Exception occurred: {e}")
         return None
 
 

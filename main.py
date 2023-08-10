@@ -5,11 +5,13 @@ import serial
 import re
 
 import serial.tools.list_ports
+import time
 
 device = "cloud"
 
 
 def stream():
+    global arduino_serial
     print("Reading MIDI messages. Press Ctrl+C to stop.")
     current_notes = []
     pitch_bend = 0
@@ -22,21 +24,30 @@ def stream():
     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
     while True:
-        output = process.stdout.readline().decode("utf-8")
-        if output:
-            if "Note on" in output:
-                velocity = int(re.search(r"velocity (\d+)", output).group(1))
-                note = int(re.search(r"note (\d+)", output).group(1))
-                if velocity > 0:
-                    current_notes += [note]
-                    send_notes(current_notes)
-            elif "Note off" in output:
-                note = int(re.search(r"note (\d+)", output).group(1))
-                if note in current_notes:
-                    current_notes.remove(note)
-            if len(current_notes) != 0:
-                print(current_notes)
-
+        try:
+            output = process.stdout.readline().decode("utf-8")
+            if output:
+                if "Note on" in output:
+                    velocity = int(re.search(r"velocity (\d+)", output).group(1))
+                    note = int(re.search(r"note (\d+)", output).group(1))
+                    if velocity > 0:
+                        current_notes += [note]
+                        send_notes(current_notes)
+                elif "Note off" in output:
+                    note = int(re.search(r"note (\d+)", output).group(1))
+                    if note in current_notes:
+                        current_notes.remove(note)
+                if len(current_notes) != 0:
+                    print(current_notes)
+        except serial.SerialException:
+            print("Connection lost...attempting to reconnect")
+            arduino_serial = get_arduino_serial()
+            if arduino_serial is None:
+                print("Piano off. Waiting.")
+            while arduino_serial is None:
+                arduino_serial = get_arduino_serial()
+                time.sleep(1)
+            print("Piano On. Resuming!")
 
 def send_notes(notes):
     """
@@ -48,7 +59,9 @@ def send_notes(notes):
 
 
 def get_arduino_serial():
-    # ports = serial.tools.list_ports.comports()
+    ports = serial.tools.list_ports.comports()
+    for port in ports:
+        print(f"Device: {port.device}, Description: {port.description}")
 
     # pick the port where port[2]!='n/a'
     # arduino_port = next((port for port in ports if port[2] != "n/a"), None)

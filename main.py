@@ -23,10 +23,10 @@ def stream(devices):
         return
 
     while True:
-        while process.poll() is not None:
-            print("Piano is off...attempting to reconnect, poll is ", process.poll())
-            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            time.sleep(1)
+        # while process.poll() is not None:
+        #     print("Piano is off...attempting to reconnect, poll is ", process.poll())
+        #     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        #     time.sleep(1)
 
         try:
             output = process.stdout.readline().decode("utf-8")

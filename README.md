@@ -16,3 +16,11 @@ Then run
 ```
 python main.py
 ```
+
+### LXM Deployment
+
+Dm Anna/Aayush/Raffi for the ssh password.
+```
+ssh lxm@192.168.4.224
+nohup python main.py &
+```

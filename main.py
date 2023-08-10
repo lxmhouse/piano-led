@@ -82,11 +82,12 @@ def get_arduino_serial(device_id):
         arduino_port = "/dev/ttyACM0"
     else:  # led
         arduino_port = "/dev/ttyUSB0"
+        
     try:
+        print("Connecting to Arduino at port", arduino_port)
         ser = serial.Serial(arduino_port, 9600)
         print(f"Arduino found: {arduino_port}")
         return ser
-
     except SerialException:
         print(f"Arduino not found at port {arduino_port}.")
         return None

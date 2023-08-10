@@ -1,6 +1,7 @@
 import subprocess
 import serial
 import re
+import time
 
 import serial.tools.list_ports
 from serial.serialutil import SerialException
@@ -22,21 +23,42 @@ def stream(devices):
         return
 
     while True:
-        output = process.stdout.readline().decode("utf-8")
-        if output:
-            if "Note on" in output:
-                velocity = int(re.search(r"velocity (\d+)", output).group(1))
-                note = int(re.search(r"note (\d+)", output).group(1))
-                if velocity > 0:
-                    current_notes += [note]
-                    for device in devices:
-                        send_notes(current_notes, device)
-            elif "Note off" in output:
-                note = int(re.search(r"note (\d+)", output).group(1))
-                if note in current_notes:
-                    current_notes.remove(note)
-            if len(current_notes) != 0:
-                print(current_notes)
+        while process.poll() is not None:
+            print("Piano is off...attempting to reconnect")
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            time.sleep(1)
+
+        try:
+            output = process.stdout.readline().decode("utf-8")
+            if output:
+                if "Note on" in output:
+                    velocity = int(re.search(r"velocity (\d+)", output).group(1))
+                    note = int(re.search(r"note (\d+)", output).group(1))
+                    if velocity > 0:
+                        current_notes += [note]
+                        for device in devices:
+                            send_notes(current_notes, device)
+                elif "Note off" in output:
+                    note = int(re.search(r"note (\d+)", output).group(1))
+                    if note in current_notes:
+                        current_notes.remove(note)
+                if len(current_notes) != 0:
+                    print(current_notes)       
+        except Exception as e:
+            print(e)
+            print("Connection to Cloud/LED lost...attempting to reconnect")
+            # process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+            cloud_device = get_arduino_serial("cloud")
+            led_device = get_arduino_serial("led")
+            if cloud_device is None:
+                print("Cloud off. Waiting.")
+            if led_device is None:
+                print("LED off. Waiting.")
+            while cloud_device is None and led_device is None:
+                cloud_device = get_arduino_serial("cloud")
+                led_device = get_arduino_serial("led")
+                time.sleep(1)
 
 def send_notes(notes, device):
     """
@@ -46,7 +68,7 @@ def send_notes(notes, device):
         note = ",".join(str(n) for n in notes) + "\n"
         note_bytes = str(note).encode("utf-8")
         device.write(note_bytes)
-        print('sent HI')
+        print('Sent note bytes to arduino!')
     except Exception as e:
         print("Could not send notes to device", e)
 

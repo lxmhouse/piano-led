@@ -27,8 +27,8 @@ def stream(devices):
     # Get the device ID
     device_id = get_device_id()
     if device_id is None:
-        print("Failed to get MIDI device ID, using default 20:0.")
-        device_id = "20:0"
+        print("Failed to get MIDI device ID, using default 'hw:1,0,0'.")
+        device_id = "hw:1,0,0"
     command = ["aseqdump", "-p", device_id]
 
     # Start the process

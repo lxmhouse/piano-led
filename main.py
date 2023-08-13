@@ -6,13 +6,29 @@ import time
 import serial.tools.list_ports
 from serial.serialutil import SerialException
 
+def get_device_id():
+    command = ["amidi", "-l"]
+    try:
+        output = subprocess.check_output(command).decode("utf-8")
+        lines = output.split("\n")
+        for line in lines:
+            if "Roland Digital Piano MIDI 1" in line:
+                parts = line.split()
+                return parts[1]  # Return the device ID
+    except subprocess.CalledProcessError:
+        print("Failed to get MIDI device ID.")
+    return None
+
 def stream(devices):
     print("Reading MIDI messages. Press Ctrl+C to stop.")
     current_notes = []
     pitch_bend = 0
 
-    # Construct the aseqdump command
-    device_id = "20:0"
+    # Get the device ID
+    device_id = get_device_id()
+    if device_id is None:
+        print("Failed to get MIDI device ID, using default 20:0.")
+        device_id = "20:0"
     command = ["aseqdump", "-p", device_id]
 
     # Start the process

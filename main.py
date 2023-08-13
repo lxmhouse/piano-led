@@ -25,10 +25,13 @@ def stream(devices):
     pitch_bend = 0
 
     # Get the device ID
+    device_ids = ["hw:1,0,0", "20:0"]
     device_id = get_device_id()
     if device_id is None:
         print("Failed to get MIDI device ID, using default 'hw:1,0,0'.")
         device_id = "hw:1,0,0"
+    else:
+        print("Using MIDI device ID:", device_id)
     command = ["aseqdump", "-p", device_id]
 
     # Start the process
@@ -38,11 +41,20 @@ def stream(devices):
         print("Could not start process:", e)
         return
 
+    time.sleep(3)  # Wait for the process to fully start before polling
     while True:
-        # while process.poll() is not None:
-        #     print("Piano is off...attempting to reconnect, poll is ", process.poll())
-        #     process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        #     time.sleep(1)
+        print(process.poll())
+        if process.poll() is not None:
+            # Use the next available id from device_ids
+            if device_id in device_ids:
+                next_index = (device_ids.index(device_id) + 1) % len(device_ids)
+                device_id = device_ids[next_index]
+            else:
+                device_id = device_ids[0]
+            
+            print("aseqdump exited with error, changing device ID to ", device_id, "and restarting...")
+            command = ["aseqdump", "-p", device_id]
+            process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         try:
             output = process.stdout.readline().decode("utf-8")
